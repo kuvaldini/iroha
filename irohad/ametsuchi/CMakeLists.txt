@@ -114,6 +114,9 @@ add_library(ametsuchi
     impl/in_memory_block_storage.cpp
     impl/in_memory_block_storage_factory.cpp
     )
+    target_link_libraries(ametsuchi 
+    subscription
+    )
 
 add_library(postgres_indexer
     impl/postgres_indexer.cpp
