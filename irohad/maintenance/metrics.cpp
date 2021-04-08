@@ -28,6 +28,11 @@ bool Metrics::valid()const{
       and on_proposal_subscription_ and storage_;
 }
 
+template<typename T>
+bool command_is(shared_model::interface::Command const& cmd){
+  return boost::get<T const&>(&cmd.get()) != nullptr;
+}
+
 Metrics::Metrics(
     std::string const& listen_addr,
     std::shared_ptr<iroha::ametsuchi::Storage> storage,
@@ -104,13 +109,13 @@ Metrics::Metrics(
           ///---
           int domains_diff = 0, peers_diff=0;
           unsigned signatures_num = 0;
-          for(auto const& trx : pblock->transactions()){
-            for(auto const& cmd : trx.commands()){
-              using namespace shared_model::interface;
-              domains_diff += boost::get<CreateDomain>(&cmd.get()) != nullptr;  // Check if command is CreateDomain
-              //do it later: domains_diff -= boost::get<RemoveDomain>(&cmd.get()) != nullptr;
-              peers_diff += boost::get<AddPeer>(&cmd.get()) != nullptr;  // Check if command is AddPeer
-              peers_diff -= boost::get<RemovePeer>(&cmd.get()) != nullptr;
+          using namespace shared_model::interface;
+          for(Transaction const& trx : pblock->transactions()){
+            for(Command const& cmd : trx.commands()){
+              domains_diff += command_is<CreateDomain>(cmd);
+              //do it later: domains_diff -= boost::get<const&RemoveDomain>(&cmd.get()) != nullptr;
+              peers_diff += command_is<AddPeer>(cmd);
+              peers_diff -= command_is<RemovePeer>(cmd);
             }
             signatures_num += boost::size(trx.signatures());
           }
