@@ -28,11 +28,11 @@
 #include "main/iroha_conf_literals.hpp"
 #include "main/iroha_conf_loader.hpp"
 #include "main/raw_block_loader.hpp"
+#include "maintenance/metrics.hpp"
 #include "network/impl/channel_factory.hpp"
 #include "util/status_notifier.hpp"
 #include "util/utility_service.hpp"
 #include "validators/field_validator.hpp"
-#include "maintenance/metrics.hpp"
 
 #if defined(USE_LIBURSA)
 #include "cryptography/ed25519_ursa_impl/crypto_provider.hpp"
@@ -108,8 +108,12 @@ DEFINE_string(verbosity, kLogSettingsFromConfigFile, "Log verbosity");
 DEFINE_validator(verbosity, &validateVerbosity);
 
 /// Metrics. ToDo validator
-DEFINE_string(metrics_addr, "127.0.0.1", "Prometeus HTTP server listen address");
-DEFINE_string(metrics_port, "", "Prometeus HTTP server listens port, disabled by default");
+DEFINE_string(metrics_addr,
+              "127.0.0.1",
+              "Prometeus HTTP server listen address");
+DEFINE_string(metrics_port,
+              "",
+              "Prometeus HTTP server listens port, disabled by default");
 
 std::sig_atomic_t caught_signal = 0;
 std::promise<void> exit_requested;
@@ -373,7 +377,8 @@ int main(int argc, char *argv[]) {
         if (not irohad->storage) {
           // Abort execution if not
           log->error("Failed to re-initialize storage");
-          daemon_status_notifier->notify(::iroha::utility_service::Status::kFailed);
+          daemon_status_notifier->notify(
+              ::iroha::utility_service::Status::kFailed);
           return EXIT_FAILURE;
         }
 
@@ -432,23 +437,24 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
 
-    std::shared_ptr<Metrics> metrics;  // Must be a pointer because 'this' is captured to lambdas in constructor.
+    std::shared_ptr<Metrics> metrics;  // Must be a pointer because 'this' is
+                                       // captured to lambdas in constructor.
     std::string metrics_addr;
-    if(FLAGS_metrics_port.size()) {
+    if (FLAGS_metrics_port.size()) {
       metrics_addr = FLAGS_metrics_addr + ":" + FLAGS_metrics_port;
-    }else if(config.metrics_addr_port.size()){
+    } else if (config.metrics_addr_port.size()) {
       metrics_addr = config.metrics_addr_port;
     }
-    if(metrics_addr.empty()) {
+    if (metrics_addr.empty()) {
       log->info("Skiping Metrics initialization.");
-    }else {
-      try{
-        metrics = Metrics::create(
-            metrics_addr,
-            irohad->storage,
-            log_manager->getChild("Metrics")->getLogger());
-        log->info("Metrics listens on {}",metrics->getListenAddress());
-      }catch(std::exception const& ex){
+    } else {
+      try {
+        metrics =
+            Metrics::create(metrics_addr,
+                            irohad->storage,
+                            log_manager->getChild("Metrics")->getLogger());
+        log->info("Metrics listens on {}", metrics->getListenAddress());
+      } catch (std::exception const &ex) {
         log->warn("Failed to initialize Metrics: {}", ex.what());
       }
     }

@@ -6,9 +6,9 @@
 #ifndef IROHA_SHARED_MODEL_COMMAND_HPP
 #define IROHA_SHARED_MODEL_COMMAND_HPP
 
-#include "interfaces/base/model_primitive.hpp"
-
 #include <boost/variant/variant_fwd.hpp>
+
+#include "interfaces/base/model_primitive.hpp"
 
 namespace shared_model {
   namespace interface {
@@ -78,8 +78,9 @@ namespace shared_model {
 
       bool operator==(const ModelType &rhs) const override;
 
-      template<class CmdType> bool is()const{
-        return boost::get<CmdType const&>(&get()) != nullptr;
+      template <class CmdType>
+      bool is() const {
+        return boost::get<CmdType const &>(&get()) != nullptr;
       }
     };
 
