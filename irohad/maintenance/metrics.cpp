@@ -23,15 +23,6 @@
 using namespace iroha;
 using namespace prometheus;
 
-bool Metrics::valid()const{
-  return registry_ and exposer_ and block_subscriber_
-      and on_proposal_subscription_ and storage_;
-}
-
-template<typename T>
-bool command_is(shared_model::interface::Command const& cmd){
-  return boost::get<T const&>(&cmd.get()) != nullptr;
-}
 
 Metrics::Metrics(
     std::string const& listen_addr,
@@ -50,7 +41,7 @@ Metrics::Metrics(
       listen_addr_port_ += ":";
     listen_addr_port_ += listen_addr;
   } else {
-    return;
+    throw std::runtime_error("Metrics does not accept listen address '"+listen_addr+"'");
   }
 
   // @note it's the users responsibility to keep the object alive
@@ -65,57 +56,50 @@ Metrics::Metrics(
   auto&block_height_gauge = BuildGauge()
                                 .Name("blocks_height")
                                 .Help("Total number of blocks in chain")
-                                //.Labels({{"label","a_metter"}})
                                 .Register(*registry_);
-  auto&block_height = block_height_gauge.Add({});//{{"value", "some"}});
+  auto&block_height = block_height_gauge.Add({});
   block_height.Set(storage_->getBlockQuery()->getTopBlockHeight());
 
   auto&peers_number_gauge = BuildGauge()
       .Name("peers_number")
       .Help("Total number peers to send transactions and request proposals")
-      //.Labels({{"label","a_metter"}})
       .Register(*registry_);
-  auto&number_of_peers = peers_number_gauge.Add({});//{{"valueP", "any"}});
+  auto&number_of_peers = peers_number_gauge.Add({});
 
   auto&domains_number_gauge = BuildGauge()
       .Name("number_of_domains")
       .Help("Total number of domains in WSV")
-      //.Labels({{"label","a_metter"}})
       .Register(*registry_);
   auto&domains_number = domains_number_gauge.Add({});
 
   auto&total_number_of_transactions_gauge = BuildGauge()
       .Name("number_of_signatures_in_last_block")
       .Help("Number of signatures in last block")
-          //.Labels({{"label","a_metter"}})
       .Register(*registry_);
   auto&total_number_of_transactions = total_number_of_transactions_gauge.Add({});
   
   auto&number_of_signatures_in_last_block_gauge = BuildGauge()
       .Name("number_of_signatures_in_last_block")
       .Help("Number of signatures in last block")
-          //.Labels({{"label","a_metter"}})
       .Register(*registry_);
   auto&number_of_signatures_in_last_block = number_of_signatures_in_last_block_gauge.Add({});
   
-  block_subscriber_ = std::make_shared<BlockSubscriber>(
-      getSubscription()->getEngine<EventTypes,BlockPtr>());
-  block_subscriber_->setCallback(
-        [&] //Values are stored in registry_
-        (auto, auto&receiver, auto const event, BlockPtr pblock){
+  block_subscriber_ = SubscriberCreator<bool,BlockPtr>::template create<
+      EventTypes::kOnBlock,
+      SubscriptionEngineHandlers::kMetrics>(
+        [&,registry=this->registry_] ///Values are stored in registry_, hold strong reference here
+        (auto&, BlockPtr pblock){
           // block_height is captured by reference because it is stored inside registry_, which is shared_ptr
           assert(pblock);
           block_height.Set(pblock->height());
-          ///---
           int domains_diff = 0, peers_diff=0;
           unsigned signatures_num = 0;
           using namespace shared_model::interface;
           for(Transaction const& trx : pblock->transactions()){
             for(Command const& cmd : trx.commands()){
-              domains_diff += command_is<CreateDomain>(cmd);
-              //do it later: domains_diff -= boost::get<const&RemoveDomain>(&cmd.get()) != nullptr;
-              peers_diff += command_is<AddPeer>(cmd);
-              peers_diff -= command_is<RemovePeer>(cmd);
+              domains_diff += cmd.is<CreateDomain>()?1:0 ;
+              peers_diff += cmd.is<AddPeer>()?1:0 ;
+              peers_diff -= cmd.is<RemovePeer>()?1:0 ;
             }
             signatures_num += boost::size(trx.signatures());
           }
@@ -137,6 +121,4 @@ Metrics::Metrics(
           }
 #endif
         });
-  block_subscriber_->subscribe<SubscriptionEngineHandlers::kMetrics>(
-      0,EventTypes::kOnBlock); //FIXME: I am not sure what is ID and why 0
 }

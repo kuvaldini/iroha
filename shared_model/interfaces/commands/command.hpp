@@ -77,6 +77,10 @@ namespace shared_model {
       std::string toString() const override;
 
       bool operator==(const ModelType &rhs) const override;
+
+      template<class CmdType> bool is()const{
+        return boost::get<CmdType const&>(&get()) != nullptr;
+      }
     };
 
   }  // namespace interface

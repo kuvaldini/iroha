@@ -442,15 +442,14 @@ int main(int argc, char *argv[]) {
     if(metrics_addr.empty()) {
       log->info("Skiping Metrics initialization.");
     }else {
-      metrics = std::make_shared<Metrics>(
-          metrics_addr,
-          irohad->storage,
-          log_manager->getChild("Metrics")->getLogger());
-      if (metrics->valid()){
+      try{
+        metrics = Metrics::create(
+            metrics_addr,
+            irohad->storage,
+            log_manager->getChild("Metrics")->getLogger());
         log->info("Metrics listens on {}",metrics->getListenAddress());
-      }else{
-        log->warn("Failed to initialize Metrics.");
-        metrics = nullptr;
+      }catch(std::exception const& ex){
+        log->warn("Failed to initialize Metrics: {}", ex.what());
       }
     }
 

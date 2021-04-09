@@ -34,14 +34,22 @@ class Metrics : public std::enable_shared_from_this<Metrics> {
   std::shared_ptr<OnProposalSubscription> on_proposal_subscription_;
   logger::LoggerPtr logger_;
 
- public:
   Metrics(
       std::string const& listen_addr,
       std::shared_ptr<iroha::ametsuchi::Storage> storage,
       logger::LoggerPtr const& logger
   );
+
+ public:
   std::string const& getListenAddress()const{ return listen_addr_port_; }
-  bool valid()const;
+
+  template<class...Ts>
+  static std::shared_ptr<Metrics> create(Ts&&...args){
+    struct Resolver : Metrics {
+      Resolver(Ts&&...args) : Metrics(std::forward<Ts>(args)...){}
+    };
+    return std::make_shared<Resolver>(std::forward<Ts>(args)...);
+  }
 };
 
 #endif //IROHA_MAINTENANCE_METRICS_HPP

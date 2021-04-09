@@ -1025,11 +1025,6 @@ Irohad::RunResult Irohad::run() {
             SynchronizationOutcomeType::kCommit,
             {block_height, ordering::kFirstRejectRound},
             *initial_ledger_state});
-    getSubscription()->notify(EventTypes::kOnInitialSynchronization,
-                              synchronizer::SynchronizationEvent{
-                                  SynchronizationOutcomeType::kCommit,
-                                  {block_height, ordering::kFirstRejectRound},
-                                  *initial_ledger_state});
     return {};
   };
 }
