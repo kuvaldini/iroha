@@ -115,7 +115,7 @@ add_library(ametsuchi
     impl/in_memory_block_storage_factory.cpp
     )
 target_link_libraries(ametsuchi 
-    subscription
+    async_subscription
     )
 
 add_library(postgres_indexer

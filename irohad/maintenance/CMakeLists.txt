@@ -6,5 +6,5 @@
 add_library(maintenance metrics.cpp)
 target_link_libraries(maintenance
     prometheus-cpp::core prometheus-cpp::pull
-    subscription
+    async_subscription
 )
