@@ -66,6 +66,7 @@ Metrics::Metrics(std::string const &listen_addr,
           .Help("Total number peers to send transactions and request proposals")
           .Register(*registry_);
   auto &number_of_peers = peers_number_gauge.Add({});
+  number_of_peers.Set(storage_->getWsvQuery()->getPeers()->size());
 
   auto &domains_number_gauge = BuildGauge()
                                    .Name("number_of_domains")
@@ -75,8 +76,8 @@ Metrics::Metrics(std::string const &listen_addr,
 
   auto &total_number_of_transactions_gauge =
       BuildGauge()
-          .Name("number_of_signatures_in_last_block")
-          .Help("Number of signatures in last block")
+          .Name("total_number_of_transactions")
+          .Help("Total number of transactions in blockchain")
           .Register(*registry_);
   auto &total_number_of_transactions =
       total_number_of_transactions_gauge.Add({});
@@ -93,7 +94,7 @@ Metrics::Metrics(std::string const &listen_addr,
       EventTypes::kOnBlock,
       SubscriptionEngineHandlers::kMetrics>(
       [&, registry = this->registry_]  /// Values are stored in registry_, hold
-                                       /// strong reference here
+                                       /// strong reference to it here
       (auto &, BlockPtr pblock) {
         // block_height is captured by reference because it is stored inside
         // registry_, which is shared_ptr
