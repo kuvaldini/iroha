@@ -101,7 +101,6 @@ Metrics::Metrics(std::string const &listen_addr,
         assert(pblock);
         block_height.Set(pblock->height());
         int domains_diff = 0, peers_diff = 0;
-        unsigned signatures_num = 0;
         using namespace shared_model::interface;
         for (Transaction const &trx : pblock->transactions()) {
           for (Command const &cmd : trx.commands()) {
@@ -109,9 +108,8 @@ Metrics::Metrics(std::string const &listen_addr,
             peers_diff += cmd.is<AddPeer>() ? 1 : 0;
             peers_diff -= cmd.is<RemovePeer>() ? 1 : 0;
           }
-          signatures_num += boost::size(trx.signatures());
         }
-        number_of_signatures_in_last_block.Set(signatures_num);
+        number_of_signatures_in_last_block.Set(boost::size(pblock->signatures()));
         unsigned transactions_in_last_block =
             pblock->txsNumber();  // or boost::size(pblock->transactions());
         total_number_of_transactions.Increment(transactions_in_last_block);
