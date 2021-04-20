@@ -8,6 +8,7 @@
 #include <prometheus/counter.h>
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
+#include "CivetServer.h"  // for CivetCallbacks
 
 #include <memory>
 #include <regex>
@@ -47,11 +48,22 @@ Metrics::Metrics(std::string const &listen_addr,
   // @note it's the users responsibility to keep the object alive
   registry_ = std::make_shared<Registry>();
 
+  CivetCallbacks cvcbs;
+  cvcbs.log_message = [](const struct mg_connection *conn, const char *message){
+    //logger_->info("{}, conn={}",message,conn);
+    return 1;  // return non-zero to disable civetweb logger
+  };
+  cvcbs.log_access = [](const struct mg_connection *conn, const char *message){
+    //logger_->debug("{}, conn={}",message,conn);
+    return 1;  // return non-zero to disable civetweb logger
+  };
   // create an http server running on addr:port
-  exposer_ = std::make_shared<Exposer>(listen_addr_port_);
+  exposer_ = std::make_shared<Exposer>(listen_addr_port_,
+                                       /*num_threads*/2,
+                                       &cvcbs);
 
   // ask the exposer_ to scrape the registry_ on incoming HTTP requests
-  exposer_->RegisterCollectable(registry_);
+  exposer_->RegisterCollectable(registry_, "/metrics");
 
   auto &block_height_gauge = BuildGauge()
                                  .Name("blocks_height")
