@@ -131,6 +131,7 @@ namespace shared_model {
     }
 
     interface::types::TransactionsNumberType Block::txsNumber() const {
+      //return boost::size(transactions());
       return impl_->payload_.tx_number();
     }
 

@@ -94,6 +94,28 @@ Metrics::Metrics(std::string const &listen_addr,
   auto &total_number_of_transactions =
       total_number_of_transactions_gauge.Add({});
 
+  auto calc_diffs = [](shared_model::interface::Block const& block){
+    int domains_diff = 0, peers_diff = 0;
+    using namespace shared_model::interface;
+    for (Transaction const &trx : block.transactions()) {
+      for (Command const &cmd : trx.commands()) {
+        domains_diff += cmd.is<CreateDomain>() ? 1 : 0;
+        peers_diff += cmd.is<AddPeer>() ? 1 : 0;
+        peers_diff -= cmd.is<RemovePeer>() ? 1 : 0;
+      }
+    }
+    return std::tuple{domains_diff,peers_diff};
+  };
+  
+  auto block_q = storage_->getBlockQuery();
+  for(size_t i=1, height = block_q->getTopBlockHeight(); i <= height; ++i) {
+    auto pblock = block_q->getBlock(i).assumeValue();
+    total_number_of_transactions.Increment(boost::size(pblock->transactions()));
+    auto[domains_diff,peers_diff] = calc_diffs(*pblock);
+    domains_number.Increment(domains_diff);
+    //number_of_peers.Increment(peers_diff); // Is got earlier from WSV
+  }
+
   auto &number_of_signatures_in_last_block_gauge =
       BuildGauge()
           .Name("number_of_signatures_in_last_block")
@@ -112,19 +134,9 @@ Metrics::Metrics(std::string const &listen_addr,
         // registry_, which is shared_ptr
         assert(pblock);
         block_height.Set(pblock->height());
-        int domains_diff = 0, peers_diff = 0;
-        using namespace shared_model::interface;
-        for (Transaction const &trx : pblock->transactions()) {
-          for (Command const &cmd : trx.commands()) {
-            domains_diff += cmd.is<CreateDomain>() ? 1 : 0;
-            peers_diff += cmd.is<AddPeer>() ? 1 : 0;
-            peers_diff -= cmd.is<RemovePeer>() ? 1 : 0;
-          }
-        }
         number_of_signatures_in_last_block.Set(boost::size(pblock->signatures()));
-        unsigned transactions_in_last_block =
-            pblock->txsNumber();  // or boost::size(pblock->transactions());
-        total_number_of_transactions.Increment(transactions_in_last_block);
+        total_number_of_transactions.Increment(boost::size(pblock->transactions());
+        auto[domains_diff,peers_diff] = calc_diffs(*pblock);
         number_of_peers.Increment(peers_diff);
 #if 1
         domains_number.Increment(domains_diff);
