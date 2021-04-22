@@ -56,7 +56,7 @@ namespace iroha {
         logger::LoggerPtr log_;
         std::shared_ptr<proto::OnDemandOrdering::StubInterface> stub_;
         std::shared_ptr<network::AsyncGrpcClient<google::protobuf::Empty>>
-            async_call_;
+            async_client_;
         std::shared_ptr<TransportFactoryType> proposal_factory_;
         std::function<TimepointType()> time_provider_;
         std::chrono::milliseconds proposal_request_timeout_;

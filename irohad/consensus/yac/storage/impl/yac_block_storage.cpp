@@ -26,13 +26,12 @@ namespace iroha {
       boost::optional<Answer> YacBlockStorage::insert(VoteMessage msg) {
         if (validScheme(msg) and uniqueVote(msg)) {
           votes_.push_back(msg);
-
           log_->info(
               "Vote with round {} and hashes ({}, {}) inserted, votes in "
               "storage [{}/{}]",
               msg.hash.vote_round,
-              msg.hash.vote_hashes.proposal_hash,
-              msg.hash.vote_hashes.block_hash,
+              msg.hash.vote_hashes.proposal_hash.substr(0,7)+"..",
+              msg.hash.vote_hashes.   block_hash.substr(0,7)+"..",
               votes_.size(),
               peers_in_round_);
         }

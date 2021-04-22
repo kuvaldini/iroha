@@ -3,21 +3,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "common/default_constructible_unary_fn.hpp"  // non-copyable value workaround
-
 #include "ordering/impl/on_demand_os_server_grpc.hpp"
 
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
+
 #include "backend/protobuf/deserialize_repeated_transactions.hpp"
 #include "backend/protobuf/proposal.hpp"
 #include "common/bind.hpp"
+#include "common/default_constructible_unary_fn.hpp"  // non-copyable value workaround
 #include "interfaces/iroha_internal/parse_and_create_batches.hpp"
 #include "interfaces/iroha_internal/transaction_batch.hpp"
 #include "logger/logger.hpp"
 
 using namespace iroha::ordering;
 using namespace iroha::ordering::transport;
+
+#include <iostream>
+using std::cout, std::cerr, std::endl;
+
 
 OnDemandOsServerGrpc::OnDemandOsServerGrpc(
     std::shared_ptr<OdOsNotification> ordering_service,
@@ -52,21 +56,33 @@ grpc::Status OnDemandOsServerGrpc::SendBatches(
     return ::grpc::Status::OK;
   }
 
+  cout<<"OnDemandOsServerGrpc::SendBatches: "<<batches.assumeValue().size()<<" batches of "<<batches.assumeValue()[0]->transactions().size()<<" transactions"<<endl;
   ordering_service_->onBatches(std::move(batches).assumeValue());
 
   return ::grpc::Status::OK;
 }
 
+
 grpc::Status OnDemandOsServerGrpc::RequestProposal(
     ::grpc::ServerContext *context,
     const proto::ProposalRequest *request,
     proto::ProposalResponse *response) {
+  cout<<"!!!---===  OnDemandOsServerGrpc::RequestProposal: round:blro:"<<request->round().block_round()<<" rej:"<<request->round().reject_round()<< endl;
+  cout<<"!!!---=== request->ByteSizeLong():"<<request->ByteSizeLong()<<endl;
   ordering_service_->onRequestProposal(
       {request->round().block_round(), request->round().reject_round()})
       | [&](auto &&proposal) {
+          cout<<"!!!---=== mutable_proposal() = "<<proposal.get()<<endl;
           *response->mutable_proposal() =
               static_cast<const shared_model::proto::Proposal *>(proposal.get())
                   ->getTransport();
         };
+  cout<<"!!!---=== response->ByteSizeLong():"<<response->ByteSizeLong()<<endl;
+//  if (response->ByteSizeLong() > GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH) {//response->max_receive_message_size()
+//    log_->warn("@@@@@@@@ Message size is bigger than max message length: {} > {}",
+//               response->ByteSizeLong(),
+//               GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH);
+//    return ::grpc::Status::CANCELLED;
+//  }
   return ::grpc::Status::OK;
 }

@@ -118,7 +118,7 @@ auto OnDemandOrderingInit::createConnectionManager(
     // hash
     auto generate_permutation = [&](auto round) {
       auto &hash = std::get<round()>(current_hashes);
-      log_->debug("Using hash: {}", hash.toString());
+//      log_->debug("Using hash: {}", hash.toString());
 
       auto prng = iroha::makeSeededPrng(hash.blob().data(), hash.blob().size());
       iroha::generatePermutation(

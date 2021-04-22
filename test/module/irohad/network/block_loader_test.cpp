@@ -74,6 +74,9 @@ class BlockLoaderTest : public testing::Test {
         block_query_factory, block_cache, getTestLogger("BlockLoaderService"));
 
     grpc::ServerBuilder builder;
+    builder.SetMaxReceiveMessageSize(50*1024*1024);
+    builder.SetMaxSendMessageSize(50*1024*1024);
+
     int port = 0;
     builder.AddListeningPort(
         "127.0.0.1:0", grpc::InsecureServerCredentials(), &port);

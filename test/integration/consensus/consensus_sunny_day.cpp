@@ -104,6 +104,9 @@ class ConsensusSunnyDayTest : public ::testing::Test {
     network->subscribe(yac);
 
     grpc::ServerBuilder builder;
+    builder.SetMaxReceiveMessageSize(50*1024*1024);
+    builder.SetMaxSendMessageSize(50*1024*1024);
+    
     int port = 0;
     builder.AddListeningPort(
         my_peer->address(), grpc::InsecureServerCredentials(), &port);

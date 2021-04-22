@@ -15,14 +15,14 @@ namespace shared_model {
     std::string Transaction::toString() const {
       return detail::PrettyStringBuilder()
           .init("Transaction")
-          .appendNamed("hash", hash().hex())
+          .appendNamed("hash", hash().hex().substr(0,7))
           .appendNamed("creatorAccountId", creatorAccountId())
           .appendNamed("createdTime", createdTime())
           .appendNamed("quorum", quorum())
           .appendNamed("commands", commands())
-          .appendNamed("batch_meta", batchMeta())
+//          .appendNamed("batch_meta", batchMeta())
           .appendNamed("reducedHash", reducedHash())
-          .appendNamed("signatures", signatures())
+//          .appendNamed("signatures", signatures())
           .finalize();
     }
 

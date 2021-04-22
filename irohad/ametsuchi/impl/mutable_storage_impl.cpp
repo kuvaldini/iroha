@@ -62,7 +62,7 @@ namespace iroha {
 
       log_->info("Applying block: height {}, hash {}",
                  block->height(),
-                 block->hash().hex());
+                 block->hash().hex().substr(0,7));
 
       auto block_applied =
           (not ledger_state_ or predicate(block, *ledger_state_.value()))

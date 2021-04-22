@@ -59,8 +59,8 @@ namespace iroha {
           std::string toString() const {
             return shared_model::detail::PrettyStringBuilder()
                 .init("VoteHashes")
-                .appendNamed("proposal", proposal_hash)
-                .appendNamed("block", block_hash)
+                .appendNamed("proposal", proposal_hash.substr(0,7)+"..")
+                .appendNamed("block", block_hash.substr(0,7)+"..")
                 .finalize();
           }
         };

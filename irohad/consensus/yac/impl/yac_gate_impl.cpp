@@ -134,8 +134,8 @@ namespace iroha {
           // insert the block we voted for to the consensus cache
           consensus_result_cache_->insert(event.round_data->block);
           log_->info("vote for (proposal: {}, block: {})",
-                     current_hash_.vote_hashes.proposal_hash,
-                     current_hash_.vote_hashes.block_hash);
+                     current_hash_.vote_hashes.proposal_hash.substr(0,7)+"..",
+                     current_hash_.vote_hashes.block_hash.substr(0,7)+"..");
         }
 
         auto order = orderer_->getOrdering(current_hash_,
@@ -189,7 +189,7 @@ namespace iroha {
           auto &block = current_block_.value();
           log_->info("consensus: commit top block: height {}, hash {}",
                      block->height(),
-                     block->hash().hex());
+                     block->hash().hex().substr(0,7)+"..");
           return rxcpp::observable<>::just<GateObject>(PairValid(
               current_hash_.vote_round, current_ledger_state_, block));
         }

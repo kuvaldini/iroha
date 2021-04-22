@@ -26,7 +26,7 @@ OnDemandOsClientGrpc::OnDemandOsClientGrpc(
     logger::LoggerPtr log)
     : log_(std::move(log)),
       stub_(std::move(stub)),
-      async_call_(std::move(async_call)),
+      async_client_(std::move(async_call)),
       proposal_factory_(std::move(proposal_factory)),
       time_provider_(std::move(time_provider)),
       proposal_request_timeout_(proposal_request_timeout) {}
@@ -41,9 +41,9 @@ void OnDemandOsClientGrpc::onBatches(CollectionType batches) {
     }
   }
 
-  log_->debug("Propagating: '{}'", request.DebugString());
+  log_->debug("Propagating: '{}'", request.DebugString()); ///
 
-  async_call_->Call([&](auto context, auto cq) {
+  async_client_->Call([&](auto context, auto cq) {
     return stub_->AsyncSendBatches(context, request, cq);
   });
 }
@@ -56,11 +56,20 @@ OnDemandOsClientGrpc::onRequestProposal(consensus::Round round) {
   request.mutable_round()->set_block_round(round.block_round);
   request.mutable_round()->set_reject_round(round.reject_round);
   proto::ProposalResponse response;
+  
+//  auto tttt = std::thread([&]() {
+//    std::this_thread::sleep_for(std::chrono::seconds(5));
+//    log_->warn("====== timer done, {}", &context);
+//    context.TryCancel();
+//  });
+  
   auto status = stub_->RequestProposal(&context, request, &response);
   if (not status.ok()) {
     log_->warn("RPC failed: {}", status.error_message());
     return boost::none;
   }
+//  tttt.join();
+  
   if (not response.has_proposal()) {
     return boost::none;
   }

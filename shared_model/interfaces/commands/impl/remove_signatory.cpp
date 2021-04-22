@@ -12,7 +12,7 @@ namespace shared_model {
       return detail::PrettyStringBuilder()
           .init("RemoveSignatory")
           .appendNamed("account_id", accountId())
-          .appendNamed("public_key", pubkey())
+          .appendNamed("public_key", pubkey().substr(0,7)+"..")
           .finalize();
     }
 

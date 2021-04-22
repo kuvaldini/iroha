@@ -16,6 +16,9 @@
 #include "interfaces/transaction_responses/not_received_tx_response.hpp"
 #include "logger/logger.hpp"
 
+#include <iostream>
+using std::cout,std::endl;
+
 namespace iroha {
   namespace torii {
 
@@ -206,6 +209,7 @@ namespace iroha {
 
     void CommandServiceImpl::processBatch(
         std::shared_ptr<shared_model::interface::TransactionBatch> batch) {
+      cout<<"CommandServiceImpl::processBatch()"<<endl;
       const auto status_issuer = "ToriiBatchProcessor";
       const auto &txs = batch->transactions();
 
@@ -214,7 +218,8 @@ namespace iroha {
       for (auto tx : txs) {
         const auto &tx_hash = tx->hash();
         if (auto found = cache_->findItem(tx_hash)) {
-          log_->debug("Found in cache: {}", **found);
+          log_->info("Found in cache: {}", **found);
+          //has_final_status = (*found)->is<decltype(final_responses)>();
           has_final_status = iroha::visit_in_place(
               (*found)->get(),
               [](const auto &final_responses)
@@ -250,27 +255,25 @@ namespace iroha {
           cache_presence->begin(),
           cache_presence->end(),
           [this, &status_issuer](const auto &tx_status) {
+            using namespace iroha::ametsuchi;
             return std::visit(
                 make_visitor(
                     [this, &status_issuer](
-                        const iroha::ametsuchi::tx_cache_status_responses::
-                            Missing &status) {
+                        const tx_cache_status_responses::Missing &status) {
                       this->pushStatus(
                           status_issuer,
                           status_factory_->makeStatelessValid(status.hash));
                       return false;
                     },
                     [this, &status_issuer](
-                        const iroha::ametsuchi::tx_cache_status_responses::
-                            Committed &status) {
+                        const tx_cache_status_responses::Committed &status) {
                       this->pushStatus(
                           status_issuer,
                           status_factory_->makeCommitted(status.hash));
                       return true;
                     },
                     [this, &status_issuer](
-                        const iroha::ametsuchi::tx_cache_status_responses::
-                            Rejected &status) {
+                        const tx_cache_status_responses::Rejected &status) {
                       this->pushStatus(
                           status_issuer,
                           status_factory_->makeRejected(status.hash));
@@ -285,7 +288,9 @@ namespace iroha {
         return;
       }
 
+      log_->warn("------tx_processor_->batchHandle(batch)");
       tx_processor_->batchHandle(batch);
+      log_->warn("--END-tx_processor_->batchHandle(batch)");
     }
 
   }  // namespace torii

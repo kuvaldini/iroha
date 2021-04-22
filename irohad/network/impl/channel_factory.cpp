@@ -96,6 +96,10 @@ grpc::ChannelArguments iroha::network::detail::makeChannelArguments(
 
   grpc::ChannelArguments args;
   args.SetServiceConfigJSON(service_config);
+
+  args.SetMaxReceiveMessageSize(2*1024*1024);
+  args.SetMaxSendMessageSize(2*1024*1024);
+  
   return args;
 }
 

@@ -69,17 +69,19 @@ namespace iroha {
 
             // notify about failed txs
             const auto &errors = proposal_and_errors->rejected_transactions;
+            log_->info("proposal_and_errors->rejected_transactions.size() {}", proposal_and_errors->rejected_transactions.size());
             for (const auto &tx_error : errors) {
-              log_->info("{}", composeErrorMessage(tx_error));
+//              log_->info("{}", composeErrorMessage(tx_error));
               this->publishStatus(TxStatusType::kStatefulFailed,
                                   tx_error.tx_hash,
                                   tx_error.error);
             }
             // notify about success txs
+            log_->info("proposal_and_errors->verified_proposal.size() {}", boost::size(proposal_and_errors->verified_proposal->transactions()));
             for (const auto &successful_tx :
                  proposal_and_errors->verified_proposal->transactions()) {
-              log_->info("VerifiedProposalCreatorEvent StatefulValid: {}",
-                         successful_tx.hash().hex());
+//              log_->info("VerifiedProposalCreatorEvent StatefulValid: {}",
+//                         successful_tx.hash().hex());
               this->publishStatus(TxStatusType::kStatefulValid,
                                   successful_tx.hash());
             }

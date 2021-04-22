@@ -24,7 +24,8 @@ namespace shared_model {
     std::string Hash::toString() const {
       return detail::PrettyStringBuilder()
           .init("Hash")
-          .append(Blob::hex())
+          .append(Blob::hex().substr(0,7))
+          .append("...")
           .finalize();
     }
 

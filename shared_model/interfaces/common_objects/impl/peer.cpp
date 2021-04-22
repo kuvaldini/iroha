@@ -13,7 +13,7 @@ namespace shared_model {
       return detail::PrettyStringBuilder()
           .init("Peer")
           .appendNamed("address", address())
-          .appendNamed("pubkey", pubkey())
+          .appendNamed("pubkey", pubkey().substr(0,7)+"..")
           .appendNamed("tlsCertificate", bool(tlsCertificate()))
           .finalize();
     }

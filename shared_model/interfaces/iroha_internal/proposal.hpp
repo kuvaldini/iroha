@@ -44,7 +44,8 @@ namespace shared_model {
         return detail::PrettyStringBuilder()
             .init("Proposal")
             .appendNamed("height", height())
-            .appendNamed("transactions", transactions())
+            .appendNamed("transactions_size", boost::size(transactions()))
+//            .appendNamed("transactions", transactions())
             .finalize();
       }
     };

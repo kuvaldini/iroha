@@ -45,6 +45,9 @@ OnDemandConnectionManager::~OnDemandConnectionManager() {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 }
 
+#include <iostream>
+using std::cout, std::endl;
+
 void OnDemandConnectionManager::onBatches(CollectionType batches) {
   /*
    * Transactions are always sent to the round after the next round (+2)
@@ -62,6 +65,7 @@ void OnDemandConnectionManager::onBatches(CollectionType batches) {
   auto propagate = [&](auto consumer) {
     std::shared_lock<std::shared_timed_mutex> lock(mutex_);
     if (not stop_requested_.load(std::memory_order_relaxed)) {
+      cout<<"--lambda propagate: "<<consumer<<endl;
       connections_.peers[consumer] | [&batches](const auto &connection) {
         connection->onBatches(batches);
       };

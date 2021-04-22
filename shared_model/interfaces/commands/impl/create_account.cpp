@@ -13,7 +13,7 @@ namespace shared_model {
           .init("CreateAccount")
           .appendNamed("account_name", accountName())
           .appendNamed("domain_id", domainId())
-          .appendNamed("public_key", pubkey())
+          .appendNamed("public_key", pubkey().substr(0,7)+"..")
           .finalize();
     }
 

@@ -56,17 +56,17 @@ void OnDemandOrderingServiceImpl::onBatches(CollectionType batches) {
       insertBatchToCache(batch);
     }
   }
-  log_->info("onBatches => collection size = {}", batches.size());
+  log_->info("onBatches => collection size = {} of {} transactions", batches.size(), batches[0]->transactions().size());
 }
 
 boost::optional<
     std::shared_ptr<const OnDemandOrderingServiceImpl::ProposalType>>
 OnDemandOrderingServiceImpl::onRequestProposal(consensus::Round round) {
-  log_->debug("Requesting a proposal for round {}", round);
+  log_->info("Requesting a proposal for round {}", round);
   boost::optional<
       std::shared_ptr<const OnDemandOrderingServiceImpl::ProposalType>>
       result = uploadProposal(round);
-  log_->debug("onRequestProposal, {}, {}returning a proposal.",
+  log_->info("onRequestProposal, {}, {}returning a proposal.",
               round,
               result ? "" : "NOT ");
   return result;

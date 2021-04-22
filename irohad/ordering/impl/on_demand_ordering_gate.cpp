@@ -117,6 +117,7 @@ OnDemandOrderingGate::processProposalRequest(
     boost::optional<
         std::shared_ptr<const OnDemandOrderingService::ProposalType>> proposal)
     const {
+  log_->warn("==== proposal {}", !!proposal);
   if (not proposal) {
     return boost::none;
   }
