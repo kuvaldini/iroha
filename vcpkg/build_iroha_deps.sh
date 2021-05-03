@@ -23,9 +23,11 @@ done
 # cp -r "$script_dir"/ports $vcpkg_path/
 
 ## Every time clean build of vcpkgtool takes 43 seconds on MacBook 2016 i7 2.8GHz
+## ToDo try reuse existing vcpkg_tool
 $vcpkg_path/bootstrap-vcpkg.sh -useSystemBinaries
 
-vcpkg --x-manifest-root=$(realpath $script_directory/..) \
+#todo use --x-manifest-root=$(git rev-parse --show-toplevel)
+vcpkg --x-manifest-root=$(realpath $script_dir/..) \
     --binarysource=files,$vcpkg_path/binarycache,readwrite \
     --x-install-root=$build_dir/vcpkg_installed \
     install
