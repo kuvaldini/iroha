@@ -26,9 +26,12 @@ done
 ## Every time clean build of vcpkgtool takes 43 seconds on MacBook 2016 i7 2.8GHz
 ##                                 and takes 3 minutes on default GitHub runner
 ## ToDo try reuse existing vcpkg_tool
-$vcpkg_path/bootstrap-vcpkg.sh -useSystemBinaries
+case $(uname | tr '[:upper:]' '[:lower:]') in
+    windows*|msys*) $vcpkg_path/bootstrap-vcpkg.bat ;;
+    *) $vcpkg_path/bootstrap-vcpkg.sh -useSystemBinaries ;;
+esac
 
-#todo use --x-manifest-root=$(git rev-parse --show-toplevel)
+#todo use --x-manifest-root=$(git -C $script_dir rev-parse --show-toplevel)
 $vcpkg_path/vcpkg install \
     --x-manifest-root=$(realpath $script_dir/..) \
     --binarysource=files,$vcpkg_path/binarycache,readwrite \

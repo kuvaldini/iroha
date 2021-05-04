@@ -1,5 +1,5 @@
 ## DO NOT EDIT
-## Generated from build-iroha-1.src.yml with make-workflows.sh
+## Generated from build-iroha1.src.yml with make-workflows.sh
 
 name: Iroha1
 on:
@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [main, support/1.2.x]
 jobs:
-  .Docker-iroha-builder:
+  Docker-iroha-builder:
     runs-on: ubuntu-latest ##todo [ self-hosted, linux, ARM64 ]
     steps:
       - name: Checkout
@@ -43,7 +43,7 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-  .build-iroha-ubuntu:
+  build-iroha-ubuntu:
     needs: Docker-iroha-builder
     runs-on: ubuntu-latest
     container: ikyb/iroha:builder
@@ -95,7 +95,9 @@ jobs:
         #    usr time    2,05 secs  128,00 micros    2,05 secs
         #    sys time    0,70 secs  575,00 micros    0,70 secs
       - name: CMake configure
-        run: "cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/build-vcpkg/scripts/buildsystems/vcpkg.cmake \\\n  -GNinja ${{ matrix.USE_BURROW }} \n  #-DCMAKE_VERBOSE_MAKEFILE=ON\n"
+        run: >
+          cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/build-vcpkg/scripts/buildsystems/vcpkg.cmake -GNinja ${{ matrix.USE_BURROW }}  #-DCMAKE_VERBOSE_MAKEFILE=ON
+
         ## Takes 13s on regular GitHub runner
       - name: CMake build
         run: cmake --build build --config ${{ matrix.build_type }}
@@ -105,9 +107,9 @@ jobs:
         if: ${{ runner.os == 'MacOS' }}
         ## ToDo may be optimize, i.e. cache package
       - name: CTest
-        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database & \ncd build && ctest\n"
+        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database start & \ncd build && ctest\n"
         ## Takes over 4h on regular GitHub runner
-  .build-iroha-macos:
+  build-iroha-macos:
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -154,7 +156,9 @@ jobs:
         #    usr time    2,05 secs  128,00 micros    2,05 secs
         #    sys time    0,70 secs  575,00 micros    0,70 secs
       - name: CMake configure
-        run: "cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/build-vcpkg/scripts/buildsystems/vcpkg.cmake \\\n  -GNinja ${{ matrix.USE_BURROW }} \n  #-DCMAKE_VERBOSE_MAKEFILE=ON\n"
+        run: >
+          cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/build-vcpkg/scripts/buildsystems/vcpkg.cmake -GNinja ${{ matrix.USE_BURROW }}  #-DCMAKE_VERBOSE_MAKEFILE=ON
+
         ## Takes 13s on regular GitHub runner
       - name: CMake build
         run: cmake --build build --config ${{ matrix.build_type }}
@@ -164,7 +168,7 @@ jobs:
         if: ${{ runner.os == 'MacOS' }}
         ## ToDo may be optimize, i.e. cache package
       - name: CTest
-        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database & \ncd build && ctest\n"
+        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database start & \ncd build && ctest\n"
         ## Takes over 4h on regular GitHub runner
   build-iroha-windows:
     runs-on: windows-latest
@@ -178,10 +182,11 @@ jobs:
         ## FIXME USE_BURROW=ON Fails on macos https://github.com/kuvaldini/iroha/runs/2489119287?check_suite_focus=true
         build_type: [Debug] #,Release, RelWithDebInfo
     steps:
-      - name: Chocolatey install
-        run: |
-          choco -?
-          choco install cmake ninja bash
+      # - &step_choco_install
+      #   name: Chocolatey install
+      #   run: |
+      #     choco -?
+      #     choco install cmake ninja
       - name: Checkout
         uses: actions/checkout@v2
       #- *step_vcpkg_cache
@@ -198,14 +203,20 @@ jobs:
         # Executed in    3,17 secs    fish           external
         #    usr time    2,05 secs  128,00 micros    2,05 secs
         #    sys time    0,70 secs  575,00 micros    0,70 secs
+
+        shell: bash
       - name: CMake configure
-        run: "cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/build-vcpkg/scripts/buildsystems/vcpkg.cmake \\\n  -GNinja ${{ matrix.USE_BURROW }} \n  #-DCMAKE_VERBOSE_MAKEFILE=ON\n"
+        run: >
+          cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/build-vcpkg/scripts/buildsystems/vcpkg.cmake -GNinja ${{ matrix.USE_BURROW }}  #-DCMAKE_VERBOSE_MAKEFILE=ON
+
         ## Takes 13s on regular GitHub runner
       - name: CMake build
         run: cmake --build build --config ${{ matrix.build_type }}
         ## Takes 18m44s on regular GitHub runner
+
+        shell: bash
       - name: Install Postgres on Windows
         run: choco install postgresql
       - name: CTest
-        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database & \ncd build && ctest\n"
+        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database start & \ncd build && ctest\n"
         ## Takes over 4h on regular GitHub runner

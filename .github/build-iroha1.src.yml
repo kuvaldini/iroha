@@ -7,7 +7,7 @@ on:
     branches: [ main, support/1.2.x ]
 
 jobs:
-  .Docker-iroha-builder:
+  Docker-iroha-builder:
     runs-on: ubuntu-latest  ##todo [ self-hosted, linux, ARM64 ]
     steps:
       -
@@ -50,7 +50,7 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
 
-  .build-iroha-ubuntu:
+  build-iroha-ubuntu:
     needs: Docker-iroha-builder
     runs-on: ubuntu-latest
     container: ikyb/iroha:builder
@@ -109,10 +109,10 @@ jobs:
         #    sys time    0,70 secs  575,00 micros    0,70 secs
       - &step_cmake_configure
         name: CMake configure
-        run: |
-          cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/build-vcpkg/scripts/buildsystems/vcpkg.cmake \
-            -GNinja ${{ matrix.USE_BURROW }} 
-            #-DCMAKE_VERBOSE_MAKEFILE=ON
+        run: >
+          cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/build-vcpkg/scripts/buildsystems/vcpkg.cmake
+          -GNinja ${{ matrix.USE_BURROW }} 
+          #-DCMAKE_VERBOSE_MAKEFILE=ON
         ## Takes 13s on regular GitHub runner
       - &step_cmake_build
         name: CMake build
@@ -127,11 +127,11 @@ jobs:
         name: CTest
         run: |
           initdb --locale=C -E UTF-8 $PWD/postgres_database &&
-          pg_ctl -D $PWD/postgres_database & 
+          pg_ctl -D $PWD/postgres_database start & 
           cd build && ctest
         ## Takes over 4h on regular GitHub runner
 
-  .build-iroha-macos:
+  build-iroha-macos:
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -156,16 +156,19 @@ jobs:
         ## FIXME USE_BURROW=ON Fails on macos https://github.com/kuvaldini/iroha/runs/2489119287?check_suite_focus=true
         build_type: [ Debug ] #,Release, RelWithDebInfo
     steps: 
-      - &step_choco_install
-        name: Chocolatey install
-        run: |
-          choco -?
-          choco install cmake ninja bash
+      # - &step_choco_install
+      #   name: Chocolatey install
+      #   run: |
+      #     choco -?
+      #     choco install cmake ninja
       - *step_checkout
       #- *step_vcpkg_cache
-      - *step_vcpkg_build
+      - <<: *step_vcpkg_build
+        shell: bash
       - *step_cmake_configure
-      - *step_cmake_build
+      - 
+        <<: *step_cmake_build
+        shell: bash
       -
         name: Install Postgres on Windows
         run: choco install postgresql
