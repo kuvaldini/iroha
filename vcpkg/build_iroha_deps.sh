@@ -24,7 +24,7 @@ done
 # cp -r "$script_dir"/ports $vcpkg_path/
 
 MANIFEST_ROOT=$(realpath $script_dir/..)
-BINARYSOURCE=files,$vcpkg_path/binarycache,readwrite
+BINARYCACHE_PATH=$vcpkg_path/binarycache
 INSTALL_ROOT=$vcpkg_path/installed
 
 ## Every time clean build of vcpkgtool takes 43 seconds on MacBook 2016 i7 2.8GHz
@@ -36,7 +36,7 @@ case $(uname | tr '[:upper:]' '[:lower:]') in
          $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics
       }
       MANIFEST_ROOT=$(cygpath -wa $MANIFEST_ROOT)
-      BINARYSOURCE=$(cygpath -wa $BINARYSOURCE)
+      BINARYCACHE_PATH=$(cygpath -wa $BINARYCACHE_PATH)
       INSTALL_ROOT=$(cygpath -wa $INSTALL_ROOT)
       ;;
    *)
@@ -51,7 +51,7 @@ bootstrap
 #todo use --x-manifest-root=$(git -C $script_dir rev-parse --show-toplevel)
 $vcpkg_path/vcpkg install \
    --x-manifest-root=$MANIFEST_ROOT \
-   --binarysource=$BINARYSOURCE \
+   --binarysource=files,$BINARYCACHE_PATH,readwrite \
    --x-install-root=$INSTALL_ROOT \
 
 #   --x-install-root=$build_dir/vcpkg_installed \
