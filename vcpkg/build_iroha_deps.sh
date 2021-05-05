@@ -33,7 +33,7 @@ INSTALL_ROOT=$vcpkg_path/installed
 case $(uname | tr '[:upper:]' '[:lower:]') in
    windows*|msys*) 
       bootstrap(){
-         $vcpkg_path/bootstrap-vcpkg.bat
+         $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics
       }
       MANIFEST_ROOT=$(cygpath -wa $MANIFEST_ROOT)
       BINARYSOURCE=$(cygpath -wa $BINARYSOURCE)
@@ -41,7 +41,7 @@ case $(uname | tr '[:upper:]' '[:lower:]') in
       ;;
    *)
       bootstrap(){
-         $vcpkg_path/bootstrap-vcpkg.sh -useSystemBinaries
+         $vcpkg_path/bootstrap-vcpkg.sh -disableMetrics -useSystemBinaries
       }
       ;;
 esac
