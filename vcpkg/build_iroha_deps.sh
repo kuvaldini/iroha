@@ -46,7 +46,7 @@ case $(uname | tr '[:upper:]' '[:lower:]') in
       ;;
 esac
 
-boostrap
+bootstrap
 
 #todo use --x-manifest-root=$(git -C $script_dir rev-parse --show-toplevel)
 $vcpkg_path/vcpkg install \
