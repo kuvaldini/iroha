@@ -57,12 +57,12 @@ $vcpkg_path/vcpkg install \
 #   --x-install-root=$build_dir/vcpkg_installed \
 #   --x-install-root=$vcpkg_path/installed \  #default for manifest mode is PWD/vcpkg_installed
 
-## Profiling
+## PROFILING
 ## system macos big sur on macbook pro 2016 i7 2.8GHz
 ## Installation of already built packages takes about 43 sec
 ## 
 ## CMake configure
-## time cmake -Bbuild -DCMAKE_TOOLCHAIN_FILE=/Users/tanya/devel/vcpkg2/scripts/buildsystems/vcpkg.cmake
+## time cmake -Bbuild -DCMAKE_TOOLCHAIN_FILE=$HOME/devel/vcpkg2/scripts/buildsystems/vcpkg.cmake
 ## Executed in    7,56 secs
 ##
 ## CMake clean build using make

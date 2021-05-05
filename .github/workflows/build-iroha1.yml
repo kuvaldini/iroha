@@ -60,10 +60,6 @@ jobs:
       CC: ${{ matrix.cc }}
       CXX:
     steps:
-      - name: Homebrew
-        run: brew install cmake ninja coreutils
-        if: ${{ runner.os == 'MacOS' }}
-        ## Takes 22 seconds with default github runner
       - name: export CC and CXX
         run: |
           echo CC=${{ matrix.cc }}                                                >>$GITHUB_ENV
@@ -72,7 +68,8 @@ jobs:
         run: echo CC=$CC CXX=$CXX
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Cache vcpkg
+      - ## Read the docs https://github.com/microsoft/vcpkg/blob/master/docs/users/binarycaching.md
+        name: Cache vcpkg
         uses: actions/cache@v2
         with:
           path: |
@@ -102,38 +99,35 @@ jobs:
       - name: CMake build
         run: cmake --build build --config ${{ matrix.build_type }}
         ## Takes 18m44s on regular GitHub runner
-      - name: Install Postgres on MacOS
-        run: brew install postgresql
-        if: ${{ runner.os == 'MacOS' }}
-        ## ToDo may be optimize, i.e. cache package
       - name: CTest
-        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database start & \ncd build && ctest\n"
+        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database start & \ncd build && ctest --output-on-failure --progress\n"
         ## Takes over 4h on regular GitHub runner
   build-iroha-macos:
     runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        # cpp: [ clang++, /usr/local/opt/llvm/bin/clang++ ]  ##todo g++-10
+        cpp: [clang++, /usr/local/opt/llvm/bin/clang++, g++-10]
         # os: [ macos-latest, macos-11.0, macos-10.15 ]
         USE_BURROW: [-DUSE_BURROW=OFF]
         # USE_URSA: [ -DUSE_URSA=OFF ]
         ## FIXME USE_BURROW=ON Fails on macos https://github.com/kuvaldini/iroha/runs/2489119287?check_suite_focus=true
         build_type: [Debug] #,Release, RelWithDebInfo
     steps:
-      - name: Homebrew
-        run: brew install cmake ninja coreutils
-        if: ${{ runner.os == 'MacOS' }}
-        ## Takes 22 seconds with default github runner
       - name: export CC and CXX
         run: |
           echo CC=${{ matrix.cc }}                                                >>$GITHUB_ENV
           echo CXX=$(echo ${{ matrix.cc }} | sed -es,gcc,g++, -es,clang,clang++,) >>$GITHUB_ENV
-      - name: Check exported CC and CXX, TODO remove this step
-        run: echo CC=$CC CXX=$CXX
+      - name: Homebrew
+        run: brew install cmake ninja coreutils
+        ## Takes 22 seconds with default github runner
+      - if: ${{matrix.cpp == 'g++-10'}}
+        name: Homebrew GCC
+        run: brew install gcc@10
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Cache vcpkg
+      - ## Read the docs https://github.com/microsoft/vcpkg/blob/master/docs/users/binarycaching.md
+        name: Cache vcpkg
         uses: actions/cache@v2
         with:
           path: |
@@ -165,10 +159,9 @@ jobs:
         ## Takes 18m44s on regular GitHub runner
       - name: Install Postgres on MacOS
         run: brew install postgresql
-        if: ${{ runner.os == 'MacOS' }}
         ## ToDo may be optimize, i.e. cache package
       - name: CTest
-        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database start & \ncd build && ctest\n"
+        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database start & \ncd build && ctest --output-on-failure --progress\n"
         ## Takes over 4h on regular GitHub runner
   build-iroha-windows:
     runs-on: windows-latest
@@ -188,9 +181,7 @@ jobs:
         run: uname
       # - &step_choco_install
       #   name: Chocolatey install
-      #   run: |
-      #     choco -?
-      #     choco install cmake ninja
+      #   run: choco install cmake ninja
       - name: Checkout
         uses: actions/checkout@v2
       #- *step_vcpkg_cache
@@ -221,6 +212,4 @@ jobs:
         shell: bash
       - name: Install Postgres on Windows
         run: choco install postgresql
-      - name: CTest
-        run: "initdb --locale=C -E UTF-8 $PWD/postgres_database &&\npg_ctl -D $PWD/postgres_database start & \ncd build && ctest\n"
-        ## Takes over 4h on regular GitHub runner
+    # - *step_ctest

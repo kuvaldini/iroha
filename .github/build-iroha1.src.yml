@@ -67,12 +67,7 @@ jobs:
       CC:  ${{ matrix.cc }}
       CXX: 
     steps: &build_steps
-      - &step_brew_install
-        name: Homebrew
-        run: brew install cmake ninja coreutils
-        if: ${{ runner.os == 'MacOS' }}
-        ## Takes 22 seconds with default github runner
-      -  &step_export_cxx
+      - &step_export_cxx
         name: export CC and CXX
         run: |
           echo CC=${{ matrix.cc }}                                                >>$GITHUB_ENV
@@ -84,6 +79,7 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       - &step_vcpkg_cache
+        ## Read the docs https://github.com/microsoft/vcpkg/blob/master/docs/users/binarycaching.md
         name: Cache vcpkg
         uses: actions/cache@v2
         with:
@@ -118,17 +114,12 @@ jobs:
         name: CMake build
         run: cmake --build build --config ${{ matrix.build_type }}
         ## Takes 18m44s on regular GitHub runner
-      - &step_brew_postgres
-        name: Install Postgres on MacOS
-        run: brew install postgresql
-        if: ${{ runner.os == 'MacOS' }}
-        ## ToDo may be optimize, i.e. cache package
       - &step_ctest
         name: CTest
         run: |
           initdb --locale=C -E UTF-8 $PWD/postgres_database &&
           pg_ctl -D $PWD/postgres_database start & 
-          cd build && ctest
+          cd build && ctest --output-on-failure --progress
         ## Takes over 4h on regular GitHub runner
 
   build-iroha-macos:
@@ -136,13 +127,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # cpp: [ clang++, /usr/local/opt/llvm/bin/clang++ ]  ##todo g++-10
+        cpp: [ clang++, /usr/local/opt/llvm/bin/clang++, g++-10 ]
         # os: [ macos-latest, macos-11.0, macos-10.15 ]
         USE_BURROW: [ -DUSE_BURROW=OFF ]
         # USE_URSA: [ -DUSE_URSA=OFF ]
         ## FIXME USE_BURROW=ON Fails on macos https://github.com/kuvaldini/iroha/runs/2489119287?check_suite_focus=true
         build_type: [ Debug ] #,Release, RelWithDebInfo
-    steps: *build_steps
+    steps:
+      - *step_export_cxx
+      - &step_brew_install
+        name: Homebrew
+        run: brew install cmake ninja coreutils
+        ## Takes 22 seconds with default github runner
+      - 
+        if: ${{matrix.cpp == 'g++-10'}}
+        name: Homebrew GCC
+        run: brew install gcc@10
+      - *step_checkout
+      - *step_vcpkg_cache
+      - *step_vcpkg_build
+      - *step_cmake_configure
+      - *step_cmake_build
+      - &step_brew_postgres
+        name: Install Postgres on MacOS
+        run: brew install postgresql
+        ## ToDo may be optimize, i.e. cache package
+      - *step_ctest
 
   build-iroha-windows:
     runs-on: windows-latest
@@ -162,9 +172,7 @@ jobs:
         run: uname
       # - &step_choco_install
       #   name: Chocolatey install
-      #   run: |
-      #     choco -?
-      #     choco install cmake ninja
+      #   run: choco install cmake ninja
       - *step_checkout
       #- *step_vcpkg_cache
       - <<: *step_vcpkg_build
@@ -176,4 +184,4 @@ jobs:
       -
         name: Install Postgres on Windows
         run: choco install postgresql
-      - *step_ctest
+      # - *step_ctest
