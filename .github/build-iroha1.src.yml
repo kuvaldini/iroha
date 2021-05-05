@@ -149,17 +149,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # cpp: [ clang++, /usr/local/opt/llvm/bin/clang++ ]  ##todo g++-10
-        # os: [ macos-latest, macos-11.0, macos-10.15 ]
+        # cpp: [ cl, clang++, mingw++ ]
         # USE_BURROW: [ -DUSE_BURROW=OFF ]
         # USE_URSA: [ -DUSE_URSA=OFF ]
         ## FIXME USE_BURROW=ON Fails on macos https://github.com/kuvaldini/iroha/runs/2489119287?check_suite_focus=true
         build_type: [ Debug ] #,Release, RelWithDebInfo
     steps: 
-      -
+      - name: uname in bash
         run: uname
         shell: bash
-      - run: uname
+      - name: uname in default shell
+        run: uname
       # - &step_choco_install
       #   name: Chocolatey install
       #   run: |

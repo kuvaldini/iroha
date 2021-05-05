@@ -31,7 +31,7 @@ INSTALL_ROOT=$vcpkg_path/installed
 ##                                 and takes 3 minutes on default GitHub runner
 ## ToDo try reuse existing vcpkg_tool
 case $(uname | tr '[:upper:]' '[:lower:]') in
-   windows*|msys*) 
+   windows*|msys*|mingw*) 
       bootstrap(){
          $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics
       }
