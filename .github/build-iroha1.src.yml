@@ -70,13 +70,6 @@ jobs:
         with: 
           token: ${{ secrets.GITHUB_TOKEN }}
           workflow: build-iroha1.yml
-      - name: remove me
-        if: ${{ always() }}
-        run: |
-          set +e
-          df -h
-          du -hd2 /
-          true
       - &step_export_cxx
         name: export CC and CXX
         run: |
@@ -125,10 +118,14 @@ jobs:
         run: cmake --build build --config ${{ matrix.build_type }}
         ## Takes 18m44s on regular GitHub runner
       - &step_on_failure_build
+        name: Show free space and disk usage
         if: ${{ always() }}
         run: | 
+          set +e
           df -h
+          echo; echo ----------------------; echo
           du -hd2 /
+          true
       - &step_ctest
         if: ${{ false }}  # disable for now
         name: CTest
