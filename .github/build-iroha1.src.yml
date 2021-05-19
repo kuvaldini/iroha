@@ -115,6 +115,9 @@ jobs:
         name: CMake build
         run: cmake --build build --config ${{ matrix.build_type }}
         ## Takes 18m44s on regular GitHub runner
+      - &step_on_failure_build
+        if: ${{ failure() }}
+        run: df -h
       - &step_ctest
         if: ${{ false }}  # disable for now
         name: CTest
