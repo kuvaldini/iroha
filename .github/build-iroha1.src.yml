@@ -64,9 +64,6 @@ jobs:
         # USE_URSA: [ -DUSE_URSA=OFF ]
         ## FIXME USE_BURROW=ON Fails on macos https://github.com/kuvaldini/iroha/runs/2489119287?check_suite_focus=true
         build_type: [ Debug ] #,Release, RelWithDebInfo
-    # env:
-    #   CC:  ${{ matrix.cc }}
-    #   CXX: 
     steps: &build_steps
       - &step_export_cxx
         name: export CC and CXX
@@ -116,8 +113,10 @@ jobs:
         run: cmake --build build --config ${{ matrix.build_type }}
         ## Takes 18m44s on regular GitHub runner
       - &step_on_failure_build
-        if: ${{ failure() }}
-        run: df -h
+        if: ${{ always() }}
+        run: | 
+          df -h
+          du -hd2 /
       - &step_ctest
         if: ${{ false }}  # disable for now
         name: CTest
