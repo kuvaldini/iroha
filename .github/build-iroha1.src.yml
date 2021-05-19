@@ -69,7 +69,7 @@ jobs:
         uses: n1hility/cancel-previous-runs@v2.0
         with: 
           token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: build-iroha1.yml
+          # workflow: build-iroha1.yml
       - &step_export_cxx
         name: export CC and CXX
         run: |
