@@ -36,7 +36,8 @@ jobs:
           make build
           echo PATH=$PWD:$PATH >>$GITHUB_ENV
           # PREFIX=/usr/local make install
-      - name: Git-secret to ENV
+      - if: ${{false}}
+        name: Git-secret to ENV
         run: |
           echo "${{secrets.GPG_KEY_TO_GIT_SECRET}}" | gpg --import    ###tr , '\n' | gpg --import
           git secret reveal
