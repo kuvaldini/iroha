@@ -103,7 +103,7 @@ host    all             all             ::1/128                 trust \n\
 local   replication     all                                     trust \n\
 host    replication     all             127.0.0.1/32            trust \n\
 host    replication     all             ::1/128                 trust \n\
-" >> /etc/postgresql/12/main/pg_hba.conf
+" > /etc/postgresql/12/main/pg_hba.conf
 
 USER iroha-ci
 # ENV CMAKE_TOOLCHAIN_FILE /opt/dependencies/scripts/buildsystems/vcpkg.cmake
