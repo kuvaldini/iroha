@@ -97,7 +97,7 @@ host    replication     all             ::1/128                 trust \n\
 #   -u = userid, default for Ubuntu is 1000
 #   -U = create a group same as username
 #   no password
-RUN useradd -ms /bin/bash iroha -u 1000 -U
+# RUN useradd -ms /bin/bash iroha -u 1000 -U
 
 # WORKDIR /opt/iroha
 # RUN set -e; \
@@ -105,5 +105,5 @@ RUN useradd -ms /bin/bash iroha -u 1000 -U
 #     mkdir -p /tmp/ccache -m 777; \
 #     ccache --clear
 
-USER iroha
+# USER iroha
 # CMD /bin/bash
